@@ -29,8 +29,8 @@ define([
             cell_appended(data.cell);
             setTimeout(function() {
                 var status = get_state(data.cell);
-                if (status.frozen || status.read_only) {
-                    set_state(data.cell, {frozen: false, read_only: false});
+                if (status.frozen || status.read_only || status.frozenable) {
+                    set_state(data.cell, {frozen: false, read_only: false, frozenable: false});
                 }
             }, 0);
         });
@@ -127,6 +127,7 @@ define([
                 // remove metadata irrelevant to non-code/markdown cells
                 delete cell.metadata.run_through_control.frozen;
                 delete cell.metadata.run_through_control.read_only;
+                delete cell.metadata.run_through_control.frozenable;
             }
             // remove whole object if it's now empty
             if (Object.keys(cell.metadata.run_through_control).length === 0) {
@@ -185,6 +186,7 @@ define([
             if (cell.metadata.run_through_control !== undefined) {
                 delete cell.metadata.run_through_control.frozen;
                 delete cell.metadata.run_through_control.read_only;
+                delete cell.metadata.run_through_control.frozenable;
             }
         } else if (should_frozen) {
             cell.metadata.editable = false;
@@ -497,9 +499,12 @@ define([
     function finished_execute(cell, status) {
         var index = Jupyter.notebook.find_cell_index(cell);
         console.log("[run_through] cell execution finished: index=%s, status=%s", index, status);
+        var flozenable = is_frozenable(cell)
         if (status == "ok") {
-            console.log('[run_through] freeze executed cell: %d', index);
-            freeze_cell(cell);
+            if (flozenable) {
+                console.log('[run_through] freeze executed cell: %d', index);
+                freeze_cell(cell);
+            }
         }
         var results = result_views[cell.cell_id];
         if (results) {
@@ -557,6 +562,14 @@ define([
             }
         }
         return "ok";
+    }
+
+    function is_frozenable(cell) {
+        if ((cell instanceof codecell.CodeCell || cell instanceof textcell.MarkdownCell) &&
+            (cell.metadata.run_through_control !== undefined)) {
+                return cell.metadata.run_through_control.frozenable === true ? true : false
+        }
+        return false
     }
 
     function is_frozen(cell) {
