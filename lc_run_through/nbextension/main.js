@@ -186,7 +186,6 @@ define([
             if (cell.metadata.run_through_control !== undefined) {
                 delete cell.metadata.run_through_control.frozen;
                 delete cell.metadata.run_through_control.read_only;
-                delete cell.metadata.run_through_control.frozenable;
             }
         } else if (should_frozen) {
             cell.metadata.editable = false;
