@@ -30,7 +30,7 @@ define([
             setTimeout(function() {
                 var status = get_state(data.cell);
                 if (status.frozen || status.read_only || status.frozenable) {
-                    set_state(data.cell, {frozen: false, read_only: false, frozenable: false});
+                    set_state(data.cell, {frozen: false, read_only: false});
                 }
             }, 0);
         });
@@ -498,9 +498,9 @@ define([
     function finished_execute(cell, status) {
         var index = Jupyter.notebook.find_cell_index(cell);
         console.log("[run_through] cell execution finished: index=%s, status=%s", index, status);
-        var flozenable = is_frozenable(cell)
+        var frozenable = is_frozenable(cell)
         if (status == "ok") {
-            if (flozenable) {
+            if (frozenable) {
                 console.log('[run_through] freeze executed cell: %d', index);
                 freeze_cell(cell);
             }
@@ -564,9 +564,13 @@ define([
     }
 
     function is_frozenable(cell) {
-        if ((cell instanceof codecell.CodeCell || cell instanceof textcell.MarkdownCell) &&
-            (cell.metadata.run_through_control !== undefined)) {
+        if (cell instanceof codecell.CodeCell || cell instanceof textcell.MarkdownCell) {
+            if (cell.metadata.run_through_control !== undefined) {
                 return cell.metadata.run_through_control.frozenable === true ? true : false
+            }
+            if (Jupyter.notebook.metadata.frozenable !== undefined) {
+                return Jupyter.notebook.metadata.frozenable === true ? true : false
+            }
         }
         return false
     }
