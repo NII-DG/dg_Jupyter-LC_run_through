@@ -565,7 +565,7 @@ define([
 
     function is_frozenable(cell) {
         if (cell instanceof codecell.CodeCell || cell instanceof textcell.MarkdownCell) {
-            if (cell.metadata.run_through_control.frozenable !== undefined) {
+            if (cell.metadata.run_through_control !== undefined) {
                 return cell.metadata.run_through_control.frozenable === true ? true : false
             }
             if (Jupyter.notebook.metadata.frozenable !== undefined) {
